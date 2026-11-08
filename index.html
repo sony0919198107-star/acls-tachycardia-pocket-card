@@ -1,66 +1,711 @@
---- index.html
-+++ index.html
-@@ -9,2 +9,4 @@
-     <script src="https://cdn.tailwindcss.com"></script>
-+    <!-- QRCode.js Library CDN -->
-+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-     <!-- Font Awesome Icons -->
-@@ -74,2 +76,8 @@
-         <div class="flex items-center gap-2">
-+            <button onclick="toggleQRModal()" class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow">
-+                <i class="fa-solid fa-qrcode"></i> 課堂掃描 QR Code
-+            </button>
-             <button onclick="window.print()" class="px-3.5 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow">
-                 <i class="fa-solid fa-print"></i> 一鍵列印 / 存為折卡 PDF
-             </button>
-@@ -82,2 +90,62 @@
- 
-+        <!-- ================= 課堂學員掃描與 QR Code 專區 (Classroom Sharing) ================= -->
-+        <section class="print-card bg-gradient-to-br from-slate-900 via-clinical-card to-purple-950/40 border-2 border-purple-500/50 rounded-3xl p-4 sm:p-5 shadow-2xl relative overflow-hidden">
-+            <div class="flex flex-col sm:flex-row items-center justify-between gap-5">
-+                <!-- 文字說明與自訂網址控制 -->
-+                <div class="space-y-2 text-center sm:text-left flex-1">
-+                    <div class="flex items-center justify-center sm:justify-start gap-2">
-+                        <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-purple-900 text-purple-200 border border-purple-700 tracking-wider">
-+                            <i class="fa-solid fa-mobile-screen-button mr-1"></i> 學員手機掃描即用
-+                        </span>
-+                        <span class="text-[11px] text-teal-400 font-bold">免安裝 • 直開口袋小抄</span>
-+                    </div>
-+                    <h2 class="text-base sm:text-lg font-extrabold text-white tracking-tight">
-+                        現場學員數位一卡通 QR Code
-+                    </h2>
-+                    <p class="text-xs text-slate-300 leading-relaxed max-w-md">
-+                        在講堂或跑站時，請學員以手機相機直接對準右方 QR Code 掃描，即可隨身查閱完整 2025 指引流程與整流焦耳數。
-+                    </p>
-+
-+                    <!-- 網址設定 (供老師自訂部署網址) -->
-+                    <div class="no-print pt-2 flex flex-col sm:flex-row items-center gap-2">
-+                        <div class="relative w-full max-w-sm">
-+                            <input type="text" id="customUrlInput" placeholder="輸入或貼上發布網址..." 
-+                                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-cyan-300 focus:outline-none focus:border-cyan-400 pl-7 font-mono">
-+                            <i class="fa-solid fa-link absolute left-2.5 top-2 text-slate-500 text-xs"></i>
-+                        </div>
-+                        <button onclick="updateQRCode()" class="w-full sm:w-auto px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 text-xs font-semibold transition shrink-0">
-+                            更新 QR Code
-+                        </button>
-+                    </div>
-+
-+                    <div class="text-[10.5px] text-rose-400 font-semibold flex items-center justify-center sm:justify-start gap-1">
-+                        <i class="fa-solid fa-lock"></i> 限課堂現場學員使用 • 未經授權嚴禁對外轉發公開
-+                    </div>
-+                </div>
-+
-+                <!-- QR Code 視覺化容器（列印時保留為清晰黑白） -->
-+                <div class="flex flex-col items-center justify-center shrink-0 p-3 bg-white rounded-2xl shadow-xl border-4 border-purple-400/30">
-+                    <div id="qrcode-container" class="w-[140px] h-[140px] flex items-center justify-center"></div>
-+                    <span class="text-[10px] font-bold text-slate-800 mt-2 tracking-wide font-sans flex items-center gap-1">
-+                        <i class="fa-solid fa-qrcode text-purple-700"></i> 專師曾妍鳳 臨床隨身卡
-+                    </span>
-+                    <button onclick="downloadQRCode()" class="no-print mt-2 text-[10px] text-purple-700 hover:text-purple-900 font-bold underline flex items-center gap-1">
-+                        <i class="fa-solid fa-download"></i> 下載 QR 圖片 (放投影片)
-+                    </button>
-+                </div>
-+            </div>
-+        </section>
-+
-         <!-- ================= 卡片主標頭 ================= -->
+<!DOCTYPE html>
+<html lang="zh-TW" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2025 ACLS 心搏過速臨床隨身一卡包 | 專科護理師：曾妍鳳 製</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        clinical: {
+                            dark: '#0b1120',
+                            card: '#131d31',
+                            border: '#24324d',
+                            accent: '#06b6d4',
+                            warning: '#f59e0b',
+                            danger: '#ef4444',
+                            success: '#10b981'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Noto Sans TC', 'sans-serif'],
+                        mono: ['SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* APA 7th Edition 標準懸垂縮排 (Hanging Indent: 0.5 in / 2rem) */
+        .apa-citation {
+            padding-left: 2rem !important;
+            text-indent: -2rem !important;
+        }
+
+        /* ===== 全局防盜防複製系統 (Anti-Copy & Selection Lock) ===== */
+        body {
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            user-select: none !important;
+            -webkit-touch-callout: none !important;
+        }
+
+        img {
+            -webkit-user-drag: none !important;
+            -khtml-user-drag: none !important;
+            -moz-user-drag: none !important;
+            -o-user-drag: none !important;
+            user-drag: none !important;
+            pointer-events: none !important;
+        }
+
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+                font-size: 10.5px !important;
+                padding: 0 !important;
+                -webkit-user-select: auto !important;
+                user-select: auto !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-card {
+                background: white !important;
+                color: black !important;
+                border: 1px solid #64748b !important;
+                box-shadow: none !important;
+                break-inside: avoid;
+                margin-bottom: 8px !important;
+                padding: 10px !important;
+            }
+            .apa-citation {
+                color: black !important;
+            }
+            .apa-citation em {
+                color: black !important;
+                font-style: italic !important;
+            }
+            .apa-citation a {
+                color: black !important;
+                text-decoration: underline !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-clinical-dark text-slate-100 font-sans antialiased min-h-screen py-4 px-2 sm:px-4 select-none">
+
+    <!-- 頂部浮動工具列 -->
+    <header class="no-print max-w-3xl mx-auto mb-4 flex items-center justify-between bg-clinical-card border border-clinical-border px-4 py-2.5 rounded-2xl shadow-lg">
+        <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></span>
+            <span class="text-xs font-semibold text-slate-300">2025 AHA Part 9 隨身速查卡</span>
+            <span class="hidden sm:inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950 text-rose-300 border border-rose-800">
+                <i class="fa-solid fa-lock mr-0.5"></i> 防拷保護中
+            </span>
+        </div>
+        <div class="flex items-center gap-2">
+            <button onclick="authorizedPrint()" class="px-3.5 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow">
+                <i class="fa-solid fa-print"></i> 一鍵列印 / 存為折卡 PDF
+            </button>
+        </div>
+    </header>
+
+    <!-- 一卡包主容器 -->
+    <main class="max-w-3xl mx-auto space-y-4">
+
+        <!-- ================= 卡片主標頭 ================= -->
+        <section class="print-card bg-clinical-card border-2 border-cyan-500/40 rounded-3xl p-4 sm:p-5 shadow-2xl relative overflow-hidden">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none"></div>
+            
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-clinical-border pb-3">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-cyan-950 text-cyan-300 border border-cyan-800 tracking-wider">
+                            2025 ACLS Pocket Guide
+                        </span>
+                        <span class="text-[11px] text-amber-400 font-bold">
+                            <i class="fa-solid fa-bolt-lightning mr-0.5"></i> 有脈搏心搏過速
+                        </span>
+                    </div>
+                    <h1 class="text-lg sm:text-xl font-extrabold text-white tracking-tight mt-1">
+                        心搏過速 (Tachycardia With a Pulse) 臨床決策一卡包
+                    </h1>
+                </div>
+
+                <!-- 作者專業認證標籤 -->
+                <div class="flex items-center sm:flex-col sm:items-end justify-between border-t sm:border-t-0 border-clinical-border pt-2 sm:pt-0">
+                    <span class="text-[11px] text-slate-400">教材編撰與臨床審訂</span>
+                    <span class="text-xs font-bold text-teal-400 bg-teal-950/60 px-2.5 py-1 rounded-lg border border-teal-800/80 flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-nurse"></i> 專科護理師：曾妍鳳 製
+                    </span>
+                </div>
+            </div>
+
+            <!-- 第一思考法則：紅字靈魂問句 -->
+            <div class="mt-3 bg-amber-950/40 border border-amber-600/50 rounded-xl p-3 flex items-start gap-2.5">
+                <i class="fa-solid fa-circle-radiation text-amber-400 text-sm mt-0.5 shrink-0"></i>
+                <div class="text-xs text-amber-100 leading-relaxed">
+                    <span class="font-bold text-amber-300">開場第一個問題（黃金原則）：</span>
+                    心跳快是<strong>病因</strong>還是<strong>代償結果</strong>？
+                    例如低血容、發燒、敗血症造成的竇速，<span class="text-rose-400 font-extrabold underline">電擊無效且有害</span>！<strong>只有心律不整本身導致灌流不足時，才需要整流電擊！</strong>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 2025 重要變革清單 (What's NEW) ================= -->
+        <section class="print-card bg-clinical-card border border-clinical-border rounded-3xl p-4 sm:p-5 shadow-xl">
+            <div class="flex items-center gap-2 mb-3">
+                <span class="w-6 h-6 rounded-lg bg-cyan-900/60 text-cyan-400 flex items-center justify-center text-xs font-bold">★</span>
+                <h2 class="text-sm sm:text-base font-bold text-white tracking-tight">2025 指引 4 大重要變革（考點必記）</h2>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                <div class="p-3 rounded-2xl bg-slate-900/80 border border-slate-800">
+                    <div class="font-bold text-cyan-300 flex items-center gap-1.5 mb-1">
+                        <i class="fa-solid fa-bolt"></i> 1. 同步整流能量原則
+                    </div>
+                    <div class="text-slate-300 leading-relaxed">
+                        不再依照不同心律設定繁瑣焦耳數；改為<strong>「依廠牌建議」</strong>，若未知機型直接使用<strong>「最大能量」</strong>。
+                    </div>
+                </div>
+
+                <div class="p-3 rounded-2xl bg-slate-900/80 border border-slate-800">
+                    <div class="font-bold text-amber-300 flex items-center gap-1.5 mb-1">
+                        <i class="fa-solid fa-wave-square"></i> 2. AF / Flutter 電擊能量
+                    </div>
+                    <div class="text-slate-300 leading-relaxed">
+                        心房顫動（AF）雙相波起始<strong>直接 ≥200 J</strong>，不再從低能量嘗試；Flutter 起始 200 J 亦屬合理。
+                    </div>
+                </div>
+
+                <div class="p-3 rounded-2xl bg-slate-900/80 border border-slate-800">
+                    <div class="font-bold text-rose-300 flex items-center gap-1.5 mb-1">
+                        <i class="fa-solid fa-burst"></i> 3. 多形性 VT (Polymorphic VT)
+                    </div>
+                    <div class="text-slate-300 leading-relaxed">
+                        形態變異無法穩定抓 R 波，<strong class="text-rose-400">一律用非同步電擊（除顫能量）</strong>！治療關鍵看 <strong>QT 間期</strong> 而非形態。
+                    </div>
+                </div>
+
+                <div class="p-3 rounded-2xl bg-slate-900/80 border border-slate-800">
+                    <div class="font-bold text-teal-300 flex items-center gap-1.5 mb-1">
+                        <i class="fa-solid fa-triangle-exclamation"></i> 4. 抗心律不整藥物原則
+                    </div>
+                    <div class="text-slate-300 leading-relaxed">
+                        <strong>嚴禁多種抗心律不整藥合併使用</strong>（可能促成致死心律）；給藥時除顫器必須貼好、隨時處於備用狀態。
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 核心三步處置流程 ================= -->
+        <section class="print-card bg-clinical-card border border-clinical-border rounded-3xl p-4 sm:p-5 shadow-xl space-y-4">
+            <div class="flex items-center justify-between border-b border-clinical-border pb-2.5">
+                <div class="flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-lg bg-purple-900/60 text-purple-400 flex items-center justify-center text-xs font-bold">1-2-3</span>
+                    <h2 class="text-sm sm:text-base font-bold text-white tracking-tight">臨床三步快篩處置導圖</h2>
+                </div>
+                <span class="text-[11px] font-mono text-cyan-400">HR ≥150 bpm 且有脈搏</span>
+            </div>
+
+            <!-- STEP 1: 初步支持 -->
+            <div class="p-3 rounded-2xl bg-slate-900 border border-slate-800 text-xs">
+                <div class="flex items-center gap-2 font-bold text-cyan-400 mb-1">
+                    <span class="px-1.5 py-0.5 rounded bg-cyan-950 border border-cyan-800 text-[10px]">STEP 1</span>
+                    初步評估與支持 (ABC)
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-slate-300 mt-2 text-[11px]">
+                    <div class="bg-slate-800/60 p-2 rounded-xl">① 暢通呼吸道/輔助呼吸</div>
+                    <div class="bg-slate-800/60 p-2 rounded-xl">② 低血氧才給氧 (SpO2 < 94%)</div>
+                    <div class="bg-slate-800/60 p-2 rounded-xl">③ 監測心律、BP、SpO2</div>
+                    <div class="bg-slate-800/60 p-2 rounded-xl">④ 建立 IV、備妥 12 導程</div>
+                </div>
+            </div>
+
+            <!-- STEP 2: 五大不穩定徵象 -->
+            <div class="p-3.5 rounded-2xl bg-rose-950/20 border-2 border-rose-800/50 text-xs">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2 font-bold text-rose-400">
+                        <span class="px-1.5 py-0.5 rounded bg-rose-950 border border-rose-700 text-[10px]">STEP 2</span>
+                        五大不穩定徵象評估（灌流不足指標）
+                    </div>
+                    <span class="text-[10px] text-rose-300 font-bold">任一項符合即為「不穩定」</span>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-5 gap-1.5 text-center text-[11px]">
+                    <div class="bg-rose-950/40 p-2 rounded-xl border border-rose-900/60 text-rose-200">
+                        <strong>1. 低血壓</strong><br><span class="text-[10px] opacity-80">(SBP < 80)</span>
+                    </div>
+                    <div class="bg-rose-950/40 p-2 rounded-xl border border-rose-900/60 text-rose-200">
+                        <strong>2. 意識改變</strong><br><span class="text-[10px] opacity-80">(腦部低灌流)</span>
+                    </div>
+                    <div class="bg-rose-950/40 p-2 rounded-xl border border-rose-900/60 text-rose-200">
+                        <strong>3. 休克徵象</strong><br><span class="text-[10px] opacity-80">(濕冷/少尿/發紺)</span>
+                    </div>
+                    <div class="bg-rose-950/40 p-2 rounded-xl border border-rose-900/60 text-rose-200">
+                        <strong>4. 缺血胸痛</strong><br><span class="text-[10px] opacity-80">(心肌缺氧)</span>
+                    </div>
+                    <div class="bg-rose-950/40 p-2 rounded-xl border border-rose-900/60 text-rose-200">
+                        <strong>5. 急性心衰</strong><br><span class="text-[10px] opacity-80">(肺水腫/端坐呼吸)</span>
+                    </div>
+                </div>
+
+                <!-- 不穩定處置結論 -->
+                <div class="mt-3 p-2.5 rounded-xl bg-rose-900/40 border border-rose-700/80 text-rose-100 flex items-start gap-2">
+                    <i class="fa-solid fa-bolt text-amber-400 mt-0.5 shrink-0"></i>
+                    <div>
+                        <strong>任一項「是」→ 立即同步整流電擊（Synchronized Cardioversion）！</strong>
+                        <div class="text-[11px] text-rose-200 mt-0.5">
+                            • 可行時先給鎮靜劑（Sedation）。<br>
+                            • 若是規則窄 QRS，準備電擊同時可先給予 Adenosine 6mg。<br>
+                            • 若電擊無效 (Refractory)：檢討潛在病因、調高能量、加抗心律不整藥、緊急照會專家。
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 3: 穩定病人分流 (寬 vs 窄 QRS) -->
+            <div class="space-y-3 pt-1">
+                <div class="flex items-center gap-2 font-bold text-purple-400 text-xs">
+                    <span class="px-1.5 py-0.5 rounded bg-purple-950 border border-purple-800 text-[10px]">STEP 3</span>
+                    五項徵象皆為「否」→ 穩定病人分流（看 QRS 寬度）
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <!-- 窄 QRS (<0.12s) -->
+                    <div class="p-3.5 rounded-2xl bg-cyan-950/30 border border-cyan-800/60 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between pb-2 border-b border-cyan-900/60 mb-2">
+                                <span class="font-bold text-cyan-300 text-sm">窄 QRS (< 0.12 秒)</span>
+                                <span class="text-[10px] px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">SVT / AF / Flutter</span>
+                            </div>
+                            <ol class="space-y-1.5 text-slate-300 list-decimal list-inside leading-relaxed text-[11.5px]">
+                                <li><strong>迷走神經刺激</strong>（規則型）：推薦<strong>改良式 Valsalva</strong>（吹氣 15 秒後立刻平躺＋抬腿 45 度，轉律率約 50%）。</li>
+                                <li><strong>Adenosine</strong>（規則型）：首劑 6 mg 快速 IV push + 20 mL NS 沖管；無效 1~2 分鐘後給第 2 劑 12 mg。</li>
+                                <li><strong>控制心率藥物</strong>：靜脈 β-blocker 或 Diltiazem / Verapamil（緩推）。</li>
+                                <li>若無效或惡化 → 考慮同步電擊。</li>
+                            </ol>
+                        </div>
+                        <div class="mt-2.5 pt-2 border-t border-cyan-900/50 text-[10.5px] text-amber-300">
+                            ⚠️ 氣喘禁用 Adenosine；收縮性心衰竭避免使用 CCB。
+                        </div>
+                    </div>
+
+                    <!-- 寬 QRS (≥0.12s) -->
+                    <div class="p-3.5 rounded-2xl bg-purple-950/30 border border-purple-800/60 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between pb-2 border-b border-purple-900/60 mb-2">
+                                <span class="font-bold text-purple-300 text-sm">寬 QRS (≥ 0.12 秒)</span>
+                                <span class="text-[10px] px-2 py-0.5 rounded bg-purple-950 text-purple-400 border border-purple-800">單形 VT / 鑑別診斷</span>
+                            </div>
+                            <ol class="space-y-1.5 text-slate-300 list-decimal list-inside leading-relaxed text-[11.5px]">
+                                <li><strong>Adenosine</strong>：<span class="text-purple-200 underline font-semibold">僅限於「極規則」且「單一形態 (Monomorphic)」時才能給！</span>不規則寬 QRS 絕對禁用！</li>
+                                <li><strong>抗心律不整藥物輸注</strong>（單選一種）：
+                                    <div class="pl-4 text-slate-400 text-[10.5px] space-y-0.5 mt-0.5">
+                                        • <strong>Procainamide</strong>: 20~50 mg/min<br>
+                                        • <strong>Amiodarone</strong>: 150 mg 10 分鐘輸注<br>
+                                        • <strong>Sotalol</strong>: 100 mg (1.5 mg/kg) 5 分鐘
+                                    </div>
+                                </li>
+                                <li><strong>照會專家</strong>（評估心導管/電氣生理）。</li>
+                                <li>藥物無效時 → 同步電擊。</li>
+                            </ol>
+                        </div>
+                        <div class="mt-2.5 pt-2 border-purple-900/50 text-[10.5px] text-rose-300 font-bold">
+                            ❌ 寬 QRS 嚴禁給予 Verapamil / Diltiazem！
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 不穩定心律整流焦耳數對應與操作核心 ================= -->
+        <section class="print-card bg-clinical-card border-2 border-amber-500/60 rounded-3xl p-4 sm:p-5 shadow-2xl space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-clinical-border pb-3">
+                <div class="flex items-center gap-2">
+                    <span class="w-7 h-7 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center text-sm font-bold">
+                        ⚡
+                    </span>
+                    <div>
+                        <h2 class="text-sm sm:text-base font-extrabold text-white tracking-tight">
+                            不穩定心律「同步整流 (Synchronized Cardioversion)」焦耳數對應表
+                        </h2>
+                        <span class="text-[11px] text-amber-300 font-semibold">2025 AHA 指引 Part 9 最新能量矩陣</span>
+                    </div>
+                </div>
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-950/80 border border-amber-700/80 text-[11px] text-amber-200">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
+                    <span>黃金守則：未知機型能量一律開<strong>最大值 (Maximum)</strong></span>
+                </div>
+            </div>
+
+            <!-- 焦耳數對應矩陣表 -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                        <tr class="bg-slate-900 text-slate-200 border-b border-clinical-border text-[11.5px]">
+                            <th class="p-2.5 font-bold w-1/4">不穩定心律型態</th>
+                            <th class="p-2.5 font-bold w-1/4">電擊模式 (SYNC)</th>
+                            <th class="p-2.5 font-bold w-1/4 text-amber-300">2025 建議起始焦耳數 (雙相波)</th>
+                            <th class="p-2.5 font-bold w-1/4">後續電擊與實戰要點</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800 text-slate-300 text-[11.5px]">
+                        <!-- AF -->
+                        <tr class="hover:bg-slate-850/40 bg-amber-950/10">
+                            <td class="p-2.5 font-bold text-amber-300">
+                                心房顫動 (AF)<br>
+                                <span class="text-[10px] text-slate-400 font-normal">Narrow Irregular (快速心室反應)</span>
+                            </td>
+                            <td class="p-2.5 font-bold text-cyan-400">
+                                <span class="px-2 py-0.5 rounded bg-cyan-950 border border-cyan-800 text-[10.5px]">SYNC ON (同步)</span>
+                            </td>
+                            <td class="p-2.5 font-mono font-extrabold text-amber-300 text-sm">
+                                起始 ≥ 200 J<br>
+                                <span class="text-[10px] text-slate-400 font-normal font-sans">(或原廠最高起始建議)</span>
+                            </td>
+                            <td class="p-2.5 text-[11px]">
+                                • <strong>2025 重大更新</strong>：不再自 100J 或 120J 開始嘗試，直接給予高能量以爭取第一擊成功率！<br>
+                                • 若失敗：階梯式調高 (200J → 300J → 360J 或機型最大值)。
+                            </td>
+                        </tr>
+
+                        <!-- Atrial Flutter -->
+                        <tr class="hover:bg-slate-850/40">
+                            <td class="p-2.5 font-bold text-teal-300">
+                                心房撲動 (Atrial Flutter)<br>
+                                <span class="text-[10px] text-slate-400 font-normal">Narrow Regular (鋸齒波 2:1~4:1)</span>
+                            </td>
+                            <td class="p-2.5 font-bold text-cyan-400">
+                                <span class="px-2 py-0.5 rounded bg-cyan-950 border border-cyan-800 text-[10.5px]">SYNC ON (同步)</span>
+                            </td>
+                            <td class="p-2.5 font-mono font-bold text-teal-300 text-sm">
+                                200 J<br>
+                                <span class="text-[10px] text-slate-400 font-normal font-sans">(或 50–100 J 視原廠)</span>
+                            </td>
+                            <td class="p-2.5 text-[11px]">
+                                • <strong>2025 指引明確指出</strong>：Flutter 起始使用 <strong>200 J</strong> 效率更高、操作更單純且具備良好安全性。<br>
+                                • 若使用低能量失敗，下一發立即調至 200 J 或以上。
+                            </td>
+                        </tr>
+
+                        <!-- SVT / PSVT -->
+                        <tr class="hover:bg-slate-850/40">
+                            <td class="p-2.5 font-bold text-cyan-300">
+                                室上性心搏過速 (SVT / PSVT)<br>
+                                <span class="text-[10px] text-slate-400 font-normal">Narrow Regular (AVNRT / AVRT)</span>
+                            </td>
+                            <td class="p-2.5 font-bold text-cyan-400">
+                                <span class="px-2 py-0.5 rounded bg-cyan-950 border border-cyan-800 text-[10.5px]">SYNC ON (同步)</span>
+                            </td>
+                            <td class="p-2.5 font-mono font-bold text-cyan-200 text-sm">
+                                50 – 100 J<br>
+                                <span class="text-[10px] text-slate-400 font-normal font-sans">(或原廠建議)</span>
+                            </td>
+                            <td class="p-2.5 text-[11px]">
+                                • 心肌通常對電擊敏感，50–100 J 多能成功轉律。<br>
+                                • 若不成功，按原廠步階往上調高能量（100J → 200J）。<br>
+                                • 若線路已建立，準備電擊同時可同步快推 Adenosine 6mg。
+                            </td>
+                        </tr>
+
+                        <!-- Monomorphic VT -->
+                        <tr class="hover:bg-slate-850/40">
+                            <td class="p-2.5 font-bold text-purple-300">
+                                單形性心室頻脈 (Monomorphic VT)<br>
+                                <span class="text-[10px] text-slate-400 font-normal">Wide Regular (有脈搏但休克/不穩定)</span>
+                            </td>
+                            <td class="p-2.5 font-bold text-cyan-400">
+                                <span class="px-2 py-0.5 rounded bg-cyan-950 border border-cyan-800 text-[10.5px]">SYNC ON (同步)</span>
+                            </td>
+                            <td class="p-2.5 font-mono font-bold text-purple-200 text-sm">
+                                100 J<br>
+                                <span class="text-[10px] text-slate-400 font-normal font-sans">(或原廠建議 100–200 J)</span>
+                            </td>
+                            <td class="p-2.5 text-[11px]">
+                                • <strong>必須有穩定 R 波</strong>才能由機具同步辨識！<br>
+                                • 若 100 J 失敗，迅速調高至 200 J 或更大能量。<br>
+                                • 若電擊中途摸不到脈搏，立即切為無脈心搏停止流程 (CPR+除顫)！
+                            </td>
+                        </tr>
+
+                        <!-- Polymorphic VT -->
+                        <tr class="hover:bg-rose-950/30 bg-rose-950/20">
+                            <td class="p-2.5 font-bold text-rose-300">
+                                多形性心室頻脈 / Torsades<br>
+                                <span class="text-[10px] text-rose-200 font-normal">Wide Irregular (波形振幅不斷變化)</span>
+                            </td>
+                            <td class="p-2.5 font-bold text-rose-400">
+                                <span class="px-2 py-0.5 rounded bg-rose-950 border border-rose-700 text-[10.5px]">SYNC OFF (非同步去顫)</span>
+                            </td>
+                            <td class="p-2.5 font-mono font-extrabold text-rose-300 text-sm">
+                                除顫最大能量<br>
+                                <span class="text-[10px] text-slate-300 font-normal font-sans">(雙相波 200~360 J 最大值)</span>
+                            </td>
+                            <td class="p-2.5 text-[11px]">
+                                • <strong class="text-rose-400">千萬不可開 SYNC！</strong>機器抓不到一致的 R 波，會無法放電或放電在 T 波引發 VF。<br>
+                                • 一律當成<strong>心搏驟停之非同步除顫（Defibrillation）</strong>迅速給電！
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 整流操作 4 大臨床查核步驟 (Checklist) -->
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 text-xs pt-1">
+                <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300">
+                    <div class="font-bold text-amber-300 mb-0.5">① 鎮靜優先 (Sedation)</div>
+                    <div class="text-[11px]">意識清醒者在血壓與時間許可下，先給予適當鎮靜止痛（如 Midazolam、Etomidate、Fentanyl）。</div>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300">
+                    <div class="font-bold text-cyan-300 mb-0.5">② 開啟 SYNC 鍵</div>
+                    <div class="text-[11px]">務必按下「SYNC」鍵，確認螢幕上每個 R 波波峰都有<strong>同步標記（Sync Markers）</strong>，避免 R-on-T。</div>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300">
+                    <div class="font-bold text-rose-300 mb-0.5">③ 持續按住 SHOCK</div>
+                    <div class="text-[11px]">整流按鍵擊發時需要<strong>「按住直到電擊放電完畢」</strong>，勿點一下就放開，因為機器需要等待下一個 R 波。</div>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300">
+                    <div class="font-bold text-teal-300 mb-0.5">④ 每次電擊後重設 SYNC</div>
+                    <div class="text-[11px]">大部分廠牌除顫器在電擊後會<strong>自動跳回非同步模式</strong>！若需再次整流，必須<strong>重新按下 SYNC</strong>！</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 常用抗心律不整藥物速查表 ================= -->
+        <section class="print-card bg-clinical-card border border-clinical-border rounded-3xl p-4 sm:p-5 shadow-xl">
+            <div class="flex items-center gap-2 mb-3">
+                <span class="w-6 h-6 rounded-lg bg-teal-900/60 text-teal-400 flex items-center justify-center text-xs font-bold">
+                    <i class="fa-solid fa-capsules"></i>
+                </span>
+                <h2 class="text-sm sm:text-base font-bold text-white tracking-tight">常用抗心律不整藥物劑量速查表</h2>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                        <tr class="bg-slate-900 text-slate-300 border-b border-clinical-border">
+                            <th class="p-2.5 font-bold">項目 / 藥物</th>
+                            <th class="p-2.5 font-bold">標準劑量 / 給藥方式</th>
+                            <th class="p-2.5 font-bold">臨床關鍵注意事項</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800 text-slate-300 text-[11.5px]">
+                        <tr class="hover:bg-slate-850/40">
+                            <td class="p-2.5 font-bold text-cyan-300">Adenosine</td>
+                            <td class="p-2.5 font-mono">第 1 劑 6 mg<br>第 2 劑 12 mg</td>
+                            <td class="p-2.5">
+                                • 極快速推注 (Rapid IV push) + 20 mL NS 沖管<br>
+                                • <strong class="text-rose-400">氣喘病人禁用</strong>；心臟移植/CVC 建議從 1~3 mg 開始
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-slate-850/40">
+                            <td class="p-2.5 font-bold text-purple-300">Amiodarone</td>
+                            <td class="p-2.5 font-mono">150 mg 輸注 10 min<br>維持 1 mg/min (6hr)</td>
+                            <td class="p-2.5">起效慢、可能造成低血壓。VT 復發時可再重複 150 mg。</td>
+                        </tr>
+                        <tr class="hover:bg-slate-850/40">
+                            <td class="p-2.5 font-bold text-emerald-300">Procainamide</td>
+                            <td class="p-2.5 font-mono">20–50 mg/min<br>最大量 17 mg/kg</td>
+                            <td class="p-2.5">若低血壓、QRS 寬度增加 >50% 或心律被壓制需立即停藥；QT 延長禁用。</td>
+                        </tr>
+                        <tr class="hover:bg-slate-850/40">
+                            <td class="p-2.5 font-bold text-amber-300">Magnesium (硫酸鎂)</td>
+                            <td class="p-2.5 font-mono">1–2 g 稀釋於 100 mL<br>滴注 15 分鐘</td>
+                            <td class="p-2.5"><strong class="text-amber-400">只用於 QT 延長之 Torsades de Pointes！</strong>正常 QT 的多形性 VT 不常規給鎂。</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ================= 8 大致命臨床地雷 (Class 3: HARM) ================= -->
+        <section class="print-card bg-clinical-card border-2 border-rose-900/60 rounded-3xl p-4 sm:p-5 shadow-xl">
+            <div class="flex items-center gap-2 mb-3">
+                <span class="w-6 h-6 rounded-lg bg-rose-950 text-rose-400 flex items-center justify-center text-xs font-bold">
+                    <i class="fa-solid fa-skull-crossbones"></i>
+                </span>
+                <h2 class="text-sm sm:text-base font-bold text-rose-400 tracking-tight">8 大致命常考地雷（Class 3: HARM）</h2>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div class="p-2.5 rounded-xl bg-slate-900/90 border border-rose-950/80 flex items-start gap-2">
+                    <span class="text-rose-400 font-bold shrink-0">❌ 1.</span>
+                    <div class="text-slate-300"><strong>寬 QRS 給 Verapamil / Diltiazem：</strong>致命禁忌！無法終止 VT 且造成低血壓休克甚至 Asystole。</div>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-900/90 border border-rose-950/80 flex items-start gap-2">
+                    <span class="text-rose-400 font-bold shrink-0">❌ 2.</span>
+                    <div class="text-slate-300"><strong>不規則寬 QRS 給 Adenosine：</strong>禁用！極高機率是 WPW+AF，阻斷 AV 結會導致電氣走副通道引發 VF。</div>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-900/90 border border-rose-950/80 flex items-start gap-2">
+                    <span class="text-rose-400 font-bold shrink-0">❌ 3.</span>
+                    <div class="text-slate-300"><strong>多形性 VT 按同步電擊：</strong>禁用同步！每個 QRS 振幅形態不同，機器無法辨識，會延誤電擊或根本按不出電。</div>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-900/90 border border-rose-950/80 flex items-start gap-2">
+                    <span class="text-rose-400 font-bold shrink-0">❌ 4.</span>
+                    <div class="text-slate-300"><strong>每個多形性 VT 都打硫酸鎂：</strong>只有 QT 延長的 Torsades 才補鎂；QT 正常是心肌缺血，給 Lidocaine/Amiodarone。</div>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-900/90 border border-rose-950/80 flex items-start gap-2">
+                    <span class="text-rose-400 font-bold shrink-0">❌ 5.</span>
+                    <div class="text-slate-300"><strong>WPW 合併 AF 打靜脈 Amiodarone：</strong>禁用！Amiodarone 會加快副傳導旁道反應誘發心室顫動猝死，應直接電擊。</div>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-900/90 border border-rose-950/80 flex items-start gap-2">
+                    <span class="text-rose-400 font-bold shrink-0">❌ 6.</span>
+                    <div class="text-slate-300"><strong>心跳快就急著電擊：</strong>敗血症、高燒、脫水代償的竇速電擊無效且增加心肌損傷，必須治療背後病因。</div>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-900/90 border border-rose-950/80 flex items-start gap-2">
+                    <span class="text-rose-400 font-bold shrink-0">❌ 7.</span>
+                    <div class="text-slate-300"><strong>氣喘病患給予 Adenosine：</strong>禁用！會直接誘發致命性急性支氣管痙攣窒息，窄 QRS 應選 CCB 或直接電擊。</div>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-900/90 border border-rose-950/80 flex items-start gap-2">
+                    <span class="text-rose-400 font-bold shrink-0">❌ 8.</span>
+                    <div class="text-slate-300"><strong>多種抗心律不整藥合併使用：</strong>嚴禁 Procainamide、Amiodarone、Sotalol 混用，容易誘發惡性致死心律。</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 參考文獻 (References - 嚴格遵循 APA 7th Edition 規範) ================= -->
+        <section class="print-card bg-clinical-card border border-slate-700/80 rounded-3xl p-4 sm:p-5 shadow-xl space-y-3">
+            <div class="flex items-center gap-2 mb-1">
+                <span class="w-6 h-6 rounded-lg bg-indigo-950 text-indigo-400 flex items-center justify-center text-xs font-bold">
+                    <i class="fa-solid fa-book-bookmark"></i>
+                </span>
+                <h2 class="text-sm sm:text-base font-bold text-white tracking-tight">References (APA 7th Edition)</h2>
+            </div>
+
+            <div class="text-[11.5px] text-slate-300 space-y-4 leading-relaxed bg-slate-900/80 p-4 rounded-2xl border border-slate-800 font-sans">
+                <!-- APA 7th 項目 1：2025 AHA Part 9 ALS 指引期刊主文 -->
+                <div class="apa-citation">
+                    Wigginton, J. G., Agarwal, S., Bartos, J. A., Coute, R. A., Drennan, I. R., Haamid, A., Kudenchuk, P. J., Link, M. S., Panchal, A. R., Pelter, M. M., Del Rios, M., Rodriguez, A. J., Perman, S. M., Sanko, S., Kotini-Shah, P., & Kurz, M. C. (2025). Part 9: Adult advanced life support: 2025 American Heart Association guidelines for cardiopulmonary resuscitation and emergency cardiovascular care. <em class="text-cyan-300">Circulation</em>, <em class="text-cyan-300">152</em>(16_Suppl_2), S538–S577. <a href="https://doi.org/10.1161/CIR.0000000000001376" target="_blank" rel="noopener noreferrer" class="text-cyan-400 underline hover:text-cyan-300 break-all font-mono">https://doi.org/10.1161/CIR.0000000000001376</a>
+                </div>
+
+                <!-- APA 7th 項目 2：AHA 2025 Tachycardia Algorithm 官方臨床指引報告 -->
+                <div class="apa-citation">
+                    American Heart Association. (2025). <em class="text-cyan-300">Adult tachyarrhythmia with a pulse algorithm: 2025 American Heart Association guidelines for cardiopulmonary resuscitation and emergency cardiovascular care</em>. American Heart Association. <a href="https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support" target="_blank" rel="noopener noreferrer" class="text-cyan-400 underline hover:text-cyan-300 break-all font-mono">https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support</a>
+                </div>
+
+                <!-- APA 7th 項目 3：ILCOR 2025 國際心肺復甦與心血管急救科學共識期刊文獻 -->
+                <div class="apa-citation">
+                    International Liaison Committee on Resuscitation. (2025). 2025 International consensus on cardiopulmonary resuscitation and emergency cardiovascular care science with treatment recommendations. <em class="text-cyan-300">Circulation</em>, <em class="text-cyan-300">152</em>(16_Suppl_1), S1–S320. <a href="https://doi.org/10.1161/CIR.0000000000001370" target="_blank" rel="noopener noreferrer" class="text-cyan-400 underline hover:text-cyan-300 break-all font-mono">https://doi.org/10.1161/CIR.0000000000001370</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 著作權與嚴禁轉貼聲明 ================= -->
+        <section class="print-card bg-gradient-to-r from-rose-950/60 via-slate-900 to-amber-950/50 border-2 border-rose-500/60 rounded-3xl p-4 sm:p-5 shadow-2xl">
+            <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-xl bg-rose-600/30 text-rose-400 border border-rose-500/50 flex items-center justify-center text-sm shrink-0 mt-0.5">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div class="space-y-1.5 text-xs">
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-rose-600 text-white uppercase tracking-wider">
+                            嚴格版權聲明 • 嚴禁轉貼
+                        </span>
+                        <span class="text-rose-300 font-bold text-[11px]">ALL RIGHTS RESERVED</span>
+                    </div>
+                    <p class="text-slate-200 leading-relaxed text-[11.5px]">
+                        本教學講義與隨身一卡包內容由 <strong>專科護理師：曾妍鳳</strong> 依據 2025 AHA 指引親自編撰、整理及臨床審訂。
+                    </p>
+                    <p class="text-amber-200/90 leading-relaxed text-[11px] font-semibold">
+                        ⚠️ <strong>【未經授權，嚴禁轉貼】</strong>：本資料<strong>僅供受訓學員個人臨床複習與課堂演練使用</strong>。嚴禁以任何形式（包括但不限於網路公開轉貼、社交平台發布、社群通訊群組轉發、翻印裝訂、錄製影音或用於商業營利教學）進行全部或部分之散布與重製。如經查獲侵權行為，將依法保留法律追訴權。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 口袋卡頁尾版權 ================= -->
+        <footer class="print-card bg-clinical-card border border-clinical-border rounded-2xl p-3 text-center text-xs text-slate-400">
+            <div class="flex flex-wrap items-center justify-center gap-2">
+                <span>ACLS 2025 指引重點臨床隨身一卡包</span>
+                <span>•</span>
+                <span class="text-teal-400 font-semibold">教材編撰與審訂：專科護理師 曾妍鳳 製</span>
+            </div>
+            <div class="text-[10px] text-slate-500 mt-1">
+                © 2025–2026 曾妍鳳 專科護理師 版權所有 • 僅供指定臨床教學授課使用 • 轉載必究
+            </div>
+        </footer>
+
+    </main>
+
+    <!-- 浮動安全版權提示通知 (HUD Toast) -->
+    <div id="securityToast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none transition-all duration-300 opacity-0 translate-y-4">
+        <div class="bg-rose-950/95 border-2 border-rose-500 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 backdrop-blur-md">
+            <i class="fa-solid fa-triangle-exclamation text-amber-400 text-lg"></i>
+            <div class="text-xs">
+                <p class="font-extrabold text-rose-200">【版權保護提示】禁止複製與轉貼</p>
+                <p class="text-[11px] text-slate-300">本卡由 專科護理師 曾妍鳳 編撰審訂，僅供學員個人現場學習。</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== JavaScript: 防複製、防右鍵、防截圖、剪貼簿淨化防護系統 ===== -->
+    <script>
+        let toastTimeout;
+        function showSecurityWarning() {
+            const toast = document.getElementById('securityToast');
+            if (!toast) return;
+            toast.classList.remove('opacity-0', 'translate-y-4');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-4');
+            }, 2500);
+        }
+
+        // 1. 禁用滑鼠右鍵點擊 (Disable Context Menu)
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            showSecurityWarning();
+            return false;
+        });
+
+        // 2. 攔截常見快捷鍵 (F12, Ctrl+C, Ctrl+X, Ctrl+U, Ctrl+S, Ctrl+A)
+        document.addEventListener('keydown', function(e) {
+            // F12 開發者工具
+            if (e.key === 'F12' || e.keyCode === 123) {
+                e.preventDefault();
+                showSecurityWarning();
+                return false;
+            }
+            // Ctrl/Cmd + 組合鍵攔截
+            if (e.ctrlKey || e.metaKey) {
+                const key = e.key.toLowerCase();
+                // 複製 (c), 剪下 (x), 全選 (a), 另存 (s), 檢視原始碼 (u)
+                if (key === 'c' || key === 'x' || key === 'a' || key === 's' || key === 'u') {
+                    e.preventDefault();
+                    showSecurityWarning();
+                    return false;
+                }
+                // 開發者工具組合鍵 (Ctrl+Shift+I / J / C)
+                if (e.shiftKey && (key === 'i' || key === 'j' || key === 'c')) {
+                    e.preventDefault();
+                    showSecurityWarning();
+                    return false;
+                }
+            }
+        });
+
+        // 3. 剪貼簿防護：若被強制複製，自動覆蓋為版權聲明
+        document.addEventListener('copy', function(e) {
+            e.preventDefault();
+            showSecurityWarning();
+            const warningText = "【版權聲明】本教材由 專科護理師 曾妍鳳 親自編撰審訂，僅供課堂內部學習使用，未經授權嚴禁轉貼、公開散布或作為任何商業用途。版權所有，轉載必究。";
+            if (e.clipboardData) {
+                e.clipboardData.setData('text/plain', warningText);
+            }
+        });
+
+        // 4. 禁用拖曳選取文字
+        document.addEventListener('selectstart', function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // 5. 授權列印通道 (僅允許由上方按鈕觸發)
+        function authorizedPrint() {
+            window.print();
+        }
+    </script>
+</body>
+</html>
